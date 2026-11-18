@@ -9,6 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^4.0.85",
+    "@ai-sdk/react": "^4.0.178",
+    "ai": "^7.0.174",
+    "mongodb": "^7.9.0",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"
