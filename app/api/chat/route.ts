@@ -4,28 +4,32 @@ import clientPromise from '@/lib/mongodb';
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 
+interface ChatDocument {
+  chatId: string;
+  messages: unknown[];
+}
+
 export async function POST(req: Request) {
   try {
     const { messages, chatId } = await req.json();
     const client = await clientPromise;
-    const db = client.db('chatbot');
+    const chatsCollection = client.db('chatbot').collection<ChatDocument>('chats');
 
     const latestMessage = messages[messages.length - 1];
-    await db.collection('chats').updateOne(
+    await chatsCollection.updateOne(
       { chatId },
       { $push: { messages: latestMessage } },
       { upsert: true }
     );
 
     const result = streamText({
-      model: groq('openai/gpt-oss-120b'),
-      system: "You are a helpful AI assistant on Vishnu's developer portfolio. Keep answers brief and professional.",
+      model: groq('openai/gpt-oss-20b'),
       messages: await convertToModelMessages(messages),
       onError({ error }) {
         console.error('Groq Stream Error:', error);
       },
       async onFinish({ text }) {
-        await db.collection('chats').updateOne(
+        await chatsCollection.updateOne(
           { chatId },
           {
             $push: {
