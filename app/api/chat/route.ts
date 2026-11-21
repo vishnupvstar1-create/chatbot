@@ -1,6 +1,7 @@
 import { streamText, convertToModelMessages } from 'ai';
 import { createGroq } from '@ai-sdk/groq';
 import clientPromise from '@/lib/mongodb';
+import { PORTFOLIO_SYSTEM_PROMPT } from '@/lib/portfolioContext';
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -24,6 +25,8 @@ export async function POST(req: Request) {
 
     const result = streamText({
       model: groq('qwen/qwen3.8-27b'),
+      system: PORTFOLIO_SYSTEM_PROMPT,
+      temperature: 0.4,
       messages: await convertToModelMessages(messages),
       onError({ error }) {
         console.error('Groq Stream Error:', error);
