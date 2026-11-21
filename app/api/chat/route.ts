@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     );
 
     const result = streamText({
-      model: groq('openai/gpt-oss-20b'),
+      model: groq('qwen/qwen3.8-27b'),
       messages: await convertToModelMessages(messages),
       onError({ error }) {
         console.error('Groq Stream Error:', error);
