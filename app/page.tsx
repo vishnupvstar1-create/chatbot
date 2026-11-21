@@ -140,45 +140,44 @@ export default function ChatInterface() {
   };
 
   const toggleVoiceInput = () => {
-  if (isListening) {
-    recognitionRef.current?.stop();
-    setIsListening(false);
-    return;
-  }
-
-  const win = window as unknown as {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  };
-  const SpeechRecognitionAPI = win.SpeechRecognition || win.webkitSpeechRecognition;
-
-  if (!SpeechRecognitionAPI) {
-    showToast('Voice input is not supported in this browser. Try Chrome or Edge.', 'error');
-    return;
-  }
-
-  // Snapshot existing text so live speech appends cleanly instead of duplicating
-  const baseInput = input.trim();
-
-  const recognition = new SpeechRecognitionAPI();
-  recognition.lang = 'en-IN';
-  recognition.interimResults = true;
-
-  recognition.onresult = (event) => {
-    let liveTranscript = '';
-    for (let i = 0; i < event.results.length; i++) {
-      liveTranscript += event.results[i][0].transcript;
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
     }
-    setInput(baseInput ? `${baseInput} ${liveTranscript}` : liveTranscript);
+
+    const win = window as unknown as {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const SpeechRecognitionAPI = win.SpeechRecognition || win.webkitSpeechRecognition;
+
+    if (!SpeechRecognitionAPI) {
+      showToast('Voice input is not supported in this browser. Try Chrome or Edge.', 'error');
+      return;
+    }
+
+    const baseInput = input.trim();
+
+    const recognition = new SpeechRecognitionAPI();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      let liveTranscript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        liveTranscript += event.results[i][0].transcript;
+      }
+      setInput(baseInput ? `${baseInput} ${liveTranscript}` : liveTranscript);
+    };
+
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    setIsListening(true);
+    recognition.start();
   };
-
-  recognition.onerror = () => setIsListening(false);
-  recognition.onend = () => setIsListening(false);
-
-  recognitionRef.current = recognition;
-  setIsListening(true);
-  recognition.start();
-};
 
   const toggleSpeak = (id: string, text: string) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -263,11 +262,11 @@ export default function ChatInterface() {
   if (!chatId) return null;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 flex flex-col h-[85vh] bg-black text-blue-50 font-sans border border-blue-900 shadow-[0_0_15px_#1e3a8a] rounded-xl mt-6">
+    <div className="w-full max-w-3xl mx-auto p-3 sm:p-6 flex flex-col h-[100dvh] sm:h-[85vh] bg-black text-blue-50 font-sans sm:border border-blue-900 sm:shadow-[0_0_15px_#1e3a8a] sm:rounded-xl sm:mt-6 overflow-hidden">
       {/* Custom Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg backdrop-blur-md text-sm transition-all ${
+          className={`fixed top-3 left-3 right-3 sm:left-auto sm:top-5 sm:right-5 z-50 flex items-center justify-between sm:justify-start gap-3 px-4 py-3 rounded-xl border shadow-lg backdrop-blur-md text-sm transition-all ${
             toast.type === 'error'
               ? 'bg-red-950/90 border-red-500/60 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
               : toast.type === 'success'
@@ -278,7 +277,7 @@ export default function ChatInterface() {
           <span>{toast.message}</span>
 
           {toast.type === 'confirm' && toast.onConfirm ? (
-            <div className="flex items-center gap-2 ml-2">
+            <div className="flex items-center gap-2 ml-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setToast(null)}
@@ -298,7 +297,7 @@ export default function ChatInterface() {
             <button
               type="button"
               onClick={() => setToast(null)}
-              className="opacity-70 hover:opacity-100 ml-1"
+              className="opacity-70 hover:opacity-100 ml-1 shrink-0"
               title="Dismiss"
             >
               <X className="w-4 h-4" />
@@ -308,21 +307,21 @@ export default function ChatInterface() {
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-center mb-6 border-b border-blue-900/50 pb-4">
-        <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">
+      <div className="flex justify-between items-center gap-2 mb-3 sm:mb-6 border-b border-blue-900/50 pb-3 sm:pb-4">
+        <h1 className="text-lg sm:text-2xl font-bold truncate text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]">
           Vishnu&apos;s AI Assistant
         </h1>
         <button
           onClick={clearChat}
           disabled={messages.length === 0 || isLoading || isFetchingHistory}
-          className="text-sm px-4 py-2 rounded-lg bg-red-950/40 text-red-400 border border-red-900/50 hover:bg-red-900/60 hover:text-red-300 transition-all disabled:opacity-30"
+          className="shrink-0 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-red-950/40 text-red-400 border border-red-900/50 hover:bg-red-900/60 hover:text-red-300 transition-all disabled:opacity-30"
         >
           Clear Chat
         </button>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto space-y-4 mb-4 p-4 rounded-lg bg-gray-950/50 border border-blue-900/50">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 mb-3 sm:mb-4 p-3 sm:p-4 rounded-lg bg-gray-950/50 border border-blue-900/50">
         {isFetchingHistory ? (
           <div className="space-y-6 w-full animate-pulse mt-2">
             <div className="p-4 rounded-lg bg-gray-900/50 border border-gray-800 max-w-[85%]">
@@ -334,7 +333,7 @@ export default function ChatInterface() {
             </div>
           </div>
         ) : messages.length === 0 && !isLoading ? (
-          <div className="text-center text-blue-500/50 mt-10">
+          <div className="text-center text-blue-500/50 mt-10 text-sm">
             Start a conversation, upload an image, or use the mic.
           </div>
         ) : (
@@ -350,10 +349,10 @@ export default function ChatInterface() {
             return (
               <div
                 key={msgId}
-                className={`p-4 rounded-lg text-sm leading-relaxed ${
+                className={`p-3 sm:p-4 rounded-lg text-sm leading-relaxed break-words overflow-hidden ${
                   m.role === 'user'
-                    ? 'bg-blue-950 border border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.2)] text-white ml-auto max-w-[85%]'
-                    : 'bg-gray-900 border border-gray-800 text-blue-100 max-w-[85%]'
+                    ? 'bg-blue-950 border border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.2)] text-white ml-auto max-w-[90%] sm:max-w-[85%]'
+                    : 'bg-gray-900 border border-gray-800 text-blue-100 max-w-[90%] sm:max-w-[85%]'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1">
@@ -361,7 +360,7 @@ export default function ChatInterface() {
                     {m.role === 'user' ? 'You' : 'AI'}
                   </strong>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     {m.role === 'assistant' && messageText && (
                       <button
                         type="button"
@@ -405,11 +404,11 @@ export default function ChatInterface() {
                       key={idx}
                       src={'url' in part ? String(part.url) : ''}
                       alt="Uploaded attachment"
-                      className="max-h-60 rounded-lg border border-blue-800/60 mb-2 object-contain"
+                      className="max-h-60 max-w-full rounded-lg border border-blue-800/60 mb-2 object-contain"
                     />
                   ))}
 
-                <span className="whitespace-pre-wrap">{messageText}</span>
+                <span className="whitespace-pre-wrap break-words">{messageText}</span>
               </div>
             );
           })
@@ -424,11 +423,11 @@ export default function ChatInterface() {
 
       {/* Image Preview Bar */}
       {previewUrl && (
-        <div className="mb-3 flex items-center gap-3 p-2 bg-gray-900 border border-blue-800/70 rounded-lg w-fit">
+        <div className="mb-2 sm:mb-3 flex items-center gap-3 p-2 bg-gray-900 border border-blue-800/70 rounded-lg max-w-full w-fit">
           <img
             src={previewUrl}
             alt="Preview"
-            className="h-12 w-12 object-cover rounded border border-blue-700"
+            className="h-12 w-12 shrink-0 object-cover rounded border border-blue-700"
           />
           <span className="text-xs text-blue-300 max-w-[160px] truncate">
             {files?.[0]?.name}
@@ -437,7 +436,7 @@ export default function ChatInterface() {
             type="button"
             onClick={removeFile}
             title="Remove image"
-            className="text-red-400 hover:text-red-300 p-1"
+            className="shrink-0 text-red-400 hover:text-red-300 p-1"
           >
             <X className="w-4 h-4" />
           </button>
@@ -445,7 +444,7 @@ export default function ChatInterface() {
       )}
 
       {/* Input Form */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <form onSubmit={handleSubmit} className="flex items-center gap-1.5 sm:gap-2 w-full">
         <input
           ref={fileInputRef}
           type="file"
@@ -459,38 +458,38 @@ export default function ChatInterface() {
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading || isFetchingHistory}
           title="Upload Image"
-          className="p-3 bg-gray-900 border border-blue-800 rounded-lg text-blue-400 hover:border-blue-400 hover:text-blue-300 disabled:opacity-50 transition-all"
+          className="shrink-0 p-2.5 sm:p-3 bg-gray-900 border border-blue-800 rounded-lg text-blue-400 hover:border-blue-400 hover:text-blue-300 disabled:opacity-50 transition-all"
         >
           <ImagePlus className="w-5 h-5" />
         </button>
 
         <button
-  type="button"
-  onClick={toggleVoiceInput}
-  disabled={isLoading || isFetchingHistory}
-  title={isListening ? 'Stop Listening' : 'Voice Input'}
-  className={`p-3 border rounded-lg transition-all disabled:opacity-50 ${
-    isListening
-      ? 'bg-red-950 border-red-500 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.6)] animate-pulse'
-      : 'bg-gray-900 border-blue-800 text-blue-400 hover:border-blue-400 hover:text-blue-300'
-  }`}
->
-  <Mic className="w-5 h-5" />
-</button>
+          type="button"
+          onClick={toggleVoiceInput}
+          disabled={isLoading || isFetchingHistory}
+          title={isListening ? 'Stop Listening' : 'Voice Input'}
+          className={`shrink-0 p-2.5 sm:p-3 border rounded-lg transition-all disabled:opacity-50 ${
+            isListening
+              ? 'bg-red-950 border-red-500 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.6)] animate-pulse'
+              : 'bg-gray-900 border-blue-800 text-blue-400 hover:border-blue-400 hover:text-blue-300'
+          }`}
+        >
+          <Mic className="w-5 h-5" />
+        </button>
 
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={isListening ? 'Listening...' : 'Ask me anything...'}
-          className="flex-1 p-3 bg-gray-900 border border-blue-800 rounded-lg focus:outline-none focus:border-blue-400 focus:shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all text-white placeholder-blue-700"
+          className="flex-1 min-w-0 p-2.5 sm:p-3 text-sm sm:text-base bg-gray-900 border border-blue-800 rounded-lg focus:outline-none focus:border-blue-400 focus:shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all text-white placeholder-blue-700"
           disabled={isLoading || isFetchingHistory}
         />
 
         <button
           type="submit"
           disabled={isLoading || isFetchingHistory || (!input.trim() && !files?.length)}
-          className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-500 hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] disabled:opacity-50 transition-all flex items-center justify-center"
+          className="shrink-0 bg-blue-600 text-white px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-blue-500 hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] disabled:opacity-50 transition-all flex items-center justify-center"
           title="Send message"
         >
           <Send className="w-5 h-5" />
